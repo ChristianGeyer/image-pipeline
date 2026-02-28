@@ -1,0 +1,10 @@
+wmax: 4656
+hmax: 3496
+w: 4656
+h: 3496
+rotation_deg: 90
+x_is_mirrored: True
+x_should_be_mirrored: False
+y_is_mirrored: True
+y_should_be_mirrored: False
+fps: 10
