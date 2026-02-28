@@ -1,0 +1,77 @@
+# ---------------------------
+# Virtual environments
+# ---------------------------
+.venv/
+venv/
+env/
+ENV/
+
+# ---------------------------
+# Python cache / compiled
+# ---------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# ---------------------------
+# Distribution / packaging
+# ---------------------------
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ---------------------------
+# Installer logs
+# ---------------------------
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ---------------------------
+# Unit test / coverage
+# ---------------------------
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+
+# ---------------------------
+# Jupyter
+# ---------------------------
+.ipynb_checkpoints/
+
+# ---------------------------
+# IDE / Editor
+# ---------------------------
+.vscode/
+.idea/
+
+# ---------------------------
+# macOS
+# ---------------------------
+.DS_Store
+
+# ---------------------------
+# Windows
+# ---------------------------
+Thumbs.db
+Desktop.ini
+
+# ---------------------------
+# Logs
+# ---------------------------
+*.log
+
+# ---------------------------
+# Local config (machine-specific)
+# ---------------------------
+config/local.yaml
+
+# ---------------------------
+# Large datasets (if someone accidentally places them inside repo)
+# ---------------------------
+datasets/
+Datasets/
