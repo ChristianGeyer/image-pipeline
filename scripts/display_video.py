@@ -1,93 +1,77 @@
 import cv2
 import numpy as np
-import platform
+import yaml
+import time
+from utils import get_project_root
+from pathlib import Path
+from camera import (
+    CameraConfig,
+    open_camera_by_index,
+    rotate_frame, 
+    flip_frame,
+)
 
-def open_camera(camera_id):
-    sys = platform.system()
-    if sys == "Darwin": # mac
-        cap = cv2.VideoCapture(camera_id, cv2.CAP_AVFOUNDATION)
-    elif sys == "Windows": # windows
-        cap = cv2.VideoCapture(camera_id, cv2.CAP_DSHOW)
-    else:
-        cap = cv2.VideoCapture(camera_id, 0) # default backend
-    if not cap.isOpened():
-        raise RuntimeError("could not open camera.")
-    return cap, sys
+ROOT = get_project_root(Path.cwd())
+CONFIG = ROOT / "config" / "camera_config.yaml" 
 
-def rotate_frame(frame, rotation_deg):
-    if rotation_deg == 90:
-        frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
-    elif rotation_deg == 180:
-        frame = cv2.rotate(frame, cv2.ROTATE_180)
-    elif rotation_deg == 270:
-        frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
-    return frame
-
-def flip_frame(frame, mirror_x, mirror_y):
-    if mirror_x and (not mirror_y):
-        frame = cv2.flip(frame, 1)
-    elif (not mirror_x) and mirror_y:
-        frame = cv2.flip(frame, 0)
-    elif mirror_x and mirror_y:
-        frame = cv2.flip(frame, -1)
-    return frame
-
-def downsampled_dimensions(w, h, downsample_factor, rotation_deg):
-    w_downsampled = w//downsample_factor
-    h_downsampled = h//downsample_factor
-    if rotation_deg in (90, 270):
-        w_downsampled, h_downsampled = h_downsampled, w_downsampled
-    return int(w_downsampled), int(h_downsampled)
+def downsampled_dimensions(cfg, downsample_factor):
+    w_downsampled = int(cfg.wreq // downsample_factor)
+    h_downsampled = int(cfg.hreq // downsample_factor)
+    if cfg.rotation_deg in (90, 270):
+        return h_downsampled, w_downsampled
+    return w_downsampled, h_downsampled
 
 def main():
+    # load camera_config dictionary
+    with open(CONFIG, "r", encoding="utf-8") as f:
+        cfg_dict = yaml.safe_load(f)
+    # create camera config object
+    cfg = CameraConfig(**cfg_dict)
     # open camera
-    cap, sys = open_camera(0)
-    print(f"opened camera, detected system {sys}")
+    cap = open_camera_by_index(cfg)
     # set resolution
-    w_request = 4656
-    h_request = 3496
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, w_request)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, h_request)
-    w = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-    h = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-    print(f"requested resolution {w_request}x{h_request}, got {w}x{h}.")
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, cfg.wreq)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, cfg.hreq)
     # display downsample
     downsample_factor = 4
-    # mirror axis
-    x_mirrored = True # depends on camera orientation
-    y_mirrored = True # depends on camera orientation
-    mirror_x = False # True for selfie mode
-    mirror_y = False # True if upside down desired
-    if mirror_x:
-        print(f"selfie mode (mirroring x axis).")
-    else:
-        print(f"normal mode (not mirroring x axis).")
-    mirror_x = x_mirrored ^ mirror_x
-    mirror_y = y_mirrored ^ mirror_y
-    # rotation
-    rotation_deg = 90
-    print(f"rotating by {rotation_deg} degrees clockwise.")
     # downsampled dimensions
-    w_display, h_display = downsampled_dimensions(w, h, downsample_factor, rotation_deg)
+    w_display, h_display = downsampled_dimensions(cfg, downsample_factor)
     print(f"downsampled to {w_display}x{h_display}.")
 
+    ret, frame = cap.read()
+    print(f"frame shape: {frame.shape[1]}x{frame.shape[0]}, expected shape: {cfg.wreq}x{cfg.hreq}.")
 
+    # fps measurement
+    t = time.perf_counter()
+    t1 = t
+    T = 10 # seconds
+    n = 0 # frame count
+    dts = [] # loop times
     while True:
+        # read frame
         ret, frame = cap.read()
-        if not ret:
-            print("could not read frame.")
-            break
+        n = n+1
         # rotate frame
-        frame = rotate_frame(frame, rotation_deg)
+        frame = rotate_frame(frame, cfg)
         # flip frame
-        #frame = cv2.flip(frame, -1)
-        frame = flip_frame(frame, mirror_x, mirror_y)
+        frame = flip_frame(frame, cfg)
         # downsample frame
         frame_display = cv2.resize(frame, (w_display, h_display))
         # display frame
         cv2.imshow("frame_display", frame_display)
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
+
+        # fps measurement and logging
+        dt = time.perf_counter()-t1
+        t1 = time.perf_counter()
+        dts.append(dt)
+        if (t1-t) > T:
+            fps = n / (t1-t)
+            print(f"fps {fps}Hz, max dt {max(dts)}, mean dt {np.mean(dts)}.")
+            t = t1
+            n = 0
+            dts = []
     
     cap.release()
     cv2.destroyAllWindows()
