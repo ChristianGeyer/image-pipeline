@@ -29,11 +29,17 @@ def main():
     cfg = CameraConfig(**cfg_dict)
     # open camera
     cap = open_camera_by_index(cfg)
+    # set resolution
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, cfg.wreq)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, cfg.hreq)
     # display downsample
     downsample_factor = 4
     # downsampled dimensions
     w_display, h_display = downsampled_dimensions(cfg, downsample_factor)
     print(f"downsampled to {w_display}x{h_display}.")
+
+    ret, frame = cap.read()
+    print(f"frame shape: {frame.shape[1]}x{frame.shape[0]}, expected shape: {cfg.wreq}x{cfg.hreq}.")
 
     # fps measurement
     t = time.perf_counter()
@@ -65,6 +71,7 @@ def main():
             print(f"fps {fps}Hz, max dt {max(dts)}, mean dt {np.mean(dts)}.")
             t = t1
             n = 0
+            dts = []
     
     cap.release()
     cv2.destroyAllWindows()

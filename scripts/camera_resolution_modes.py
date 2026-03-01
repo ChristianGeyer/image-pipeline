@@ -12,12 +12,29 @@ from camera import (
     open_camera_by_index,
     test_resolution_modes,
 )
+import argparse
 
 ROOT = get_project_root(Path.cwd())
 CONFIG = ROOT / "config" / "camera_config.yaml"
 MODES = ROOT / "config" / "camera_resolution_modes.yaml"
 
+def argparser():
+    parser = argparse.ArgumentParser(
+        description="Test camera resolution modes and optionally save them."
+    )
+
+    parser.add_argument(
+        "--save",
+        type=str,
+        default=None,
+        help="Filename to save YAML config (e.g. my_config.yaml, or my_config)"
+    )
+
+    return parser.parse_args()
+
 def main():
+    # argument parser
+    args = argparser()
     # read camera config
     with open(CONFIG, "r", encoding="utf-8") as f:
         cfg_dict = yaml.safe_load(f)
@@ -31,10 +48,16 @@ def main():
     print("distinct:")
     for w, h in distinct:
         print(f"{w}x{h}")
-    yaml_dict = {}
-    yaml_dict["modes"] = distinct
-    with open(MODES, "w", encoding="utf-8") as f:
-        yaml.safe_dump(yaml_dict, f, sort_keys=False)
+    if args.save is not None:
+        # construct path
+        name = args.save
+        p = ROOT / "config" / name
+        p = str(p.with_suffix(".yaml"))
+        # save modes
+        yaml_dict = {}
+        yaml_dict["modes"] = distinct
+        with open(p, "w", encoding="utf-8") as f:
+            yaml.safe_dump(yaml_dict, f, sort_keys=False)
 
 if __name__ == "__main__":
     main()
