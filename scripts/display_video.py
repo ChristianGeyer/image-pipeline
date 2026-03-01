@@ -7,6 +7,7 @@ from pathlib import Path
 from camera import (
     CameraConfig,
     open_camera_by_index,
+    open_configured_camera,
     rotate_frame, 
     flip_frame,
 )
@@ -28,23 +29,29 @@ def main():
     # create camera config object
     cfg = CameraConfig(**cfg_dict)
     # open camera
-    cap = open_camera_by_index(cfg)
+    #cap = open_camera_by_index(cfg)
     # set resolution
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, cfg.wreq)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, cfg.hreq)
+    #cap.set(cv2.CAP_PROP_FRAME_WIDTH, cfg.wreq)
+    #cap.set(cv2.CAP_PROP_FRAME_HEIGHT, cfg.hreq)
+    # open camera
+    cap = open_configured_camera(cfg)
+
     # display downsample
-    downsample_factor = 4
+    downsample_factor = 2
     # downsampled dimensions
     w_display, h_display = downsampled_dimensions(cfg, downsample_factor)
     print(f"downsampled to {w_display}x{h_display}.")
 
-    ret, frame = cap.read()
+    # warmup frames
+    warmup_frames = 5
+    for i in range(warmup_frames):
+        ret, frame = cap.read()
     print(f"frame shape: {frame.shape[1]}x{frame.shape[0]}, expected shape: {cfg.wreq}x{cfg.hreq}.")
 
     # fps measurement
     t = time.perf_counter()
     t1 = t
-    T = 10 # seconds
+    T = 5 # seconds
     n = 0 # frame count
     dts = [] # loop times
     while True:

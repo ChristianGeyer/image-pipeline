@@ -9,6 +9,7 @@ from pathlib import Path
 from camera import (
     CameraConfig,
     open_camera_by_index,
+    open_configured_camera,
     test_resolution_mode_fps,
 )
 import time
@@ -48,13 +49,14 @@ def main():
     with open(MODES, "r", encoding="utf-8") as f:
         modes_dict = yaml.safe_load(f)
     modes = modes_dict["modes"]
-    # open camera
-    cap = open_camera_by_index(cfg)
-    # test fps of the second highest resolution mode
-    fps, dts = test_resolution_mode_fps(cap, modes[1], T=30)
-
-    print(f"mode {modes[1][0]}x{modes[1][1]} -> fps {fps}, max dt {max(dts)}, mean dt {np.mean(dts)}")
-    
+    # test fps of all modes
+    for w, h in modes:
+        cfg.wreq = w
+        cfg.hreq = h
+        cap = open_configured_camera(cfg)
+        fps, dts = test_resolution_mode_fps(cap)
+        print(f"mode {w}x{h}, fps {fps}Hz, mean dt {np.mean(dts)}, max dt {max(dts)}.")  
+        cap.release()  
 
 if __name__ == "__main__":
     main()
