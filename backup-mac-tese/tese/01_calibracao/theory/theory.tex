@@ -1,0 +1,59 @@
+\documentclass[11pt]{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\title{Calibration Theory}
+\author{Your Name}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Projection Geometry}
+
+The camera projection equation is:
+
+\begin{equation}
+x \sim K [R \mid t] X
+\end{equation}
+
+\subsection{Homogeneous Coordinates}
+
+A 3D point in homogeneous form:
+
+\begin{equation}
+\tilde{X} =
+\begin{bmatrix}
+X \\
+Y \\
+Z \\
+1
+\end{bmatrix}
+\end{equation}
+
+\section{Matrix Example}
+
+\begin{equation}
+\begin{bmatrix}
+a_{11} & a_{12} \\
+a_{21} & a_{22}
+\end{bmatrix}
+\begin{bmatrix}
+x_1 \\
+x_2
+\end{bmatrix}
+=
+\begin{bmatrix}
+b_1 \\
+b_2
+\end{bmatrix}
+\end{equation}
+
+\end{document}

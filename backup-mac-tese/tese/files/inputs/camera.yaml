@@ -1,0 +1,6 @@
+camera_index: 0
+size: [4656, 3496]
+#size: [1920, 1080]
+warmup_seconds: 0.5
+warmup_frames: 5
+rotate_deg: 90

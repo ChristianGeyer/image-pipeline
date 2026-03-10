@@ -1,0 +1,5 @@
+squaresX: 7
+squaresY: 7
+squareLength: 0.015
+markerLength: 0.010
+aruco_dict: DICT_4X4_1000

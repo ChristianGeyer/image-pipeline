@@ -1,0 +1,61 @@
+Title:
+Application of YOLOv8 and Detectron2 for Bullet Hole Detection and Score Calculation from Shooting Cards
+
+Authors:
+Butt, Glas, Monsuur, Stoop, de Keijzer
+
+Year:
+2024
+
+Input:
+RGB photographs of ISSF-style paper shooting targets taken at a real shooting range. Images include whole target, black center region, bullet holes, logos, and score table.
+
+Method:
+Deep-learning object detection. The paper compares single-shot detectors (YOLOv8n, YOLOv8s, YOLOv8m, RetinaNet-50, RetinaNet-101) and two-stage detectors (Faster R-CNN-50, Faster R-CNN-101). Each bullet hole is treated as an object whose class directly encodes the score (Bullet_0 to Bullet_10). The model predicts both the hole and its score instead of first detecting the hole and then computing geometry.
+
+Dataset:
+- 10 real paper targets, 26×26 cm, 10 scoring rings.
+- 1243 original real images captured in a shooting range (Haarlem, NL).
+- Synthetic data generation: bullet holes were cut from real targets and randomly pasted onto blank targets with rotation and scaling.
+- About 40% of the final dataset is synthetic.
+- Final split:
+  - Train: 2784 images
+  - Validation: 202 images
+  - Test: 113 images
+- Images resized to 640×640.
+- Annotated classes (13 total):
+  Target, Black_contour, Bullet_0 … Bullet_10 (score encoded as class).
+- Annotations done using Roboflow API.
+- Data augmentation: flipping, grayscale (25%), brightness, saturation.
+
+Evaluation metrics:
+Precision, Recall, AP, mAP50, mAP50–95, and inference speed (ms). IoU threshold = 0.5.
+
+Accuracy:
+Best models:
+- YOLOv8m:
+  mAP50 = 96.7%
+  Recall = 94.0%
+  Speed = 5.7 ms
+- YOLOv8s:
+  mAP50 = 96.5%
+  Recall = 93.6%
+  Speed = 2.3 ms
+
+All YOLOv8 variants significantly outperform Detectron2 models. Best Detectron2 model (Faster R-CNN-101) reached AP50 ≈ 89.8%. RetinaNet-101 performed worst (mAP ≈ 66%).
+
+Speed:
+YOLOv8s is the best real-time candidate: 2.3 ms per image with almost the same accuracy as YOLOv8m. Faster R-CNN and RetinaNet did not report inference time but are much slower due to two-stage detection.
+
+Key idea:
+Instead of detecting bullet holes and then computing geometry, the network directly classifies each bullet hole into a score class (Bullet_0 … Bullet_10) based on spatial context.
+
+Limitations:
+- Heavy dependence on annotated data; incorrect boundary labels propagate errors.
+- Some misclassification near ring boundaries (e.g., a bullet that should be 1 is labeled 2).
+- Overlapping bullet holes are rare in the dataset and not well covered.
+- Synthetic data may bias the model toward specific hole appearances.
+- The system does not compute geometry explicitly (no center estimation, no contour fitting), so it relies entirely on CNN predictions.
+
+Relevance to my thesis:
+This paper shows that CNN-based object detection (YOLOv8) can reach real-time performance and high accuracy for paper target scoring. However, it replaces physical scoring rules with classification, while my system will need precise localization and ISSF-compliant geometric scoring. This makes it a strong baseline but not a full solution for regulatory scoring.

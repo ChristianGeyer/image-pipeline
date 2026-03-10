@@ -1,0 +1,1 @@
+pandoc <filename>.md -o <filename>.pdf --pdf-engine=pdflatex

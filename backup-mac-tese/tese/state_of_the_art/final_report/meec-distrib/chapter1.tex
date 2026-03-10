@@ -1,0 +1,43 @@
+\chapter{Introduction}
+\label{chap:introduction}
+
+Sport shooting requires accurate and reliable scoring of targets in order to evaluate athlete
+performance during training and competition, as well as to improve the training experience.
+Traditionally, paper targets have been scored
+manually, a process that is time-consuming, error-prone and unsuitable for real-time feedback.
+To overcome these limitations, a variety of automatic scoring systems have been developed over
+the years, including solutions based on acoustic triangulation, laser beam interruption and
+electronic impact sensing. While these systems offer high accuracy and reliability, they typically
+involve specialized hardware and high cost, making them less accessible to amateur
+clubs and training environments.
+
+Computer-vision-based scoring systems provide a low-cost alternative by using standard
+imaging hardware and image-processing algorithms to detect and score bullet impacts on paper
+targets. Advances in image processing and machine learning have increased the feasibility of
+such approaches, enabling automatic detection of bullet holes under challenging
+conditions. However, the application of computer vision to ISSF-compliant paper targets remains
+challenging due to the small dimensions involved, the use of decimal scoring and the high
+accuracy requirements imposed by official rules.
+
+This work focuses on the automatic scoring of ISSF 10\,m air rifle and 10\,m air pistol paper
+targets using low-cost camera-based systems. The objective is to design a computer-vision-based
+scoring system capable of detecting bullet holes, estimating their positions with sufficient
+accuracy and computing ISSF-compliant decimal scores in near real time. Particular emphasis is
+placed on achieving a balance between robustness to real-world imaging conditions and the
+geometric precision required for accurate scoring.
+
+To address this problem, the dissertation explores a hybrid system architecture that combines
+learning-based methods and classical image-processing techniques. Convolutional neural networks
+are considered for robust target and bullet-hole detection, while geometric refinement methods
+are employed to recover accurate center coordinates required for scoring. The system is designed
+to operate in controlled indoor shooting ranges using low-cost hardware, without relying on
+specialized electronic targets.
+
+The remainder of this document is organized as follows. Chapter~2 analyzes the physical and
+regulatory constraints of ISSF paper targets and reviews the state of the art in computer-vision-
+based target scoring systems. Chapter~3 presents the proposed system architecture and outlines
+the image-processing methods considered for target localization, bullet-hole detection and
+geometric refinement. Chapter~4 concludes the report with a summary of the main findings and a
+discussion of the expected contributions and future work during the dissertation phase.
+
+

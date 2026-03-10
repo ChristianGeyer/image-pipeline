@@ -1,0 +1,55 @@
+%% abstract.tex: abstract in PT and EN  (FEUP regulations)
+%% -------------------------------------------------------
+
+\chapter*{Resumo}
+
+A pontuação automática de alvos de papel é um requisito importante no tiro desportivo,
+particularmente em contextos de treino, onde o feedback em tempo real pode apoiar o
+desenvolvimento dos atletas. Embora os sistemas de pontuação eletrónica baseados em hardware
+especializado ofereçam elevada precisão, o seu custo e os requisitos de infraestrutura limitam a
+sua acessibilidade a clubes amadores. As abordagens baseadas em visão por computador
+constituem uma alternativa de baixo custo, mas devem satisfazer os elevados requisitos de
+precisão impostos pelas regras de pontuação decimal da ISSF.
+
+Este trabalho aborda o problema da pontuação automática de alvos em papel da ISSF para as
+modalidades de carabina de ar comprimido a 10\,m e pistola de ar comprimido a 10\,m, utilizando
+sistemas de baixo custo baseados em câmaras. As características físicas dos alvos da ISSF e as
+respetivas regras de pontuação são analisadas de forma a derivar requisitos de precisão para uma
+pontuação decimal fiável. Uma revisão do estado da arte mostra que os métodos clássicos de
+processamento de imagem podem atingir elevada precisão geométrica em condições controladas,
+mas carecem de robustez, enquanto as abordagens baseadas em deep-learning
+proporcionam deteção fiável, mas precisão de localização insuficiente quando utilizadas de forma
+isolada.
+
+Com base nesta análise, é proposta uma arquitetura de sistema híbrida que combina deteção
+baseada em aprendizagem com refinamento geométrico clássico. É concebido um pipeline modular
+de processamento de imagem para suportar a deteção robusta do alvo e dos impactos, o tratamento
+de impactos sobrepostos e a estimativa precisa dos centros, permitindo uma pontuação em
+conformidade com as regras da ISSF em tempo quase real. A abordagem proposta estabelece uma
+base para o desenvolvimento e avaliação de um sistema de pontuação automática de baixo custo
+para alvos em papel da ISSF durante a fase de dissertação.
+
+\chapter*{Abstract}
+
+Automatic scoring of paper targets is an important requirement in sport shooting, particularly
+in training environments where real-time feedback can support athlete development. While
+electronic scoring systems based on specialized hardware provide high accuracy, their cost and
+infrastructure requirements limit their accessibility to amateur clubs. Computer-vision-based
+approaches offer a low-cost alternative but must satisfy the high accuracy requirements
+imposed by ISSF decimal scoring rules.
+
+This work addresses the problem of automatic scoring of ISSF 10\,m air rifle and 10\,m air pistol
+paper targets using low-cost camera-based systems. The physical characteristics of ISSF targets
+and the scoring rules are analyzed to derive accuracy requirements for reliable decimal
+scoring. A review of the state of the art shows that classical image-processing methods can
+achieve high geometric precision under controlled conditions but lack robustness, while deep
+learning approaches provide reliable detection but insufficient localization accuracy when used in
+isolation.
+
+Based on this analysis, a hybrid system architecture is proposed that combines learning-based
+detection with classical geometric refinement. A modular image-processing pipeline is designed
+to support robust target and bullet-hole detection, overlap handling and precise center
+estimation, enabling ISSF-compliant scoring in near real time. The proposed approach establishes
+a foundation for the development and evaluation of a low-cost automatic scoring system for
+ISSF paper targets during the dissertation phase.
+

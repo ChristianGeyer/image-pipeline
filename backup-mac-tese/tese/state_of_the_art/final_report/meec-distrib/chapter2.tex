@@ -1,0 +1,347 @@
+\chapter{Problem Definition and State of the Art}
+\label{chap:stateoftheart}
+
+\section{Introduction}
+\label{sec:intro}
+
+Scoring targets is an essential task in sport shooting, and a variety of systems have been developed
+over the years to replace the time-consuming manual scoring. Common technologies include
+triangulation of acoustic signals, laser-beam interruption and impact sensing. These technologies
+represent high-accuracy but high-cost solutions, and are well-suited for professional events. Many
+amateur sport-shooting clubs are interested in low-cost, real-time scoring systems that do not
+require the same level of precision. Computer-vision-based systems offer a low-cost alternative
+capable of detecting and scoring paper targets.
+
+This section reviews the state of the art in computer-vision-based target scoring systems. This includes
+classical image processing methods, and more recent deep learning approaches.
+
+\section{Physical and Regulatory Requirements of ISSF Paper Targets}\label{sec:requirements}
+
+ISSF defines the dimensions and scoring rules for paper targets used in 10\,m air rifle and 10\,m air pistol events.
+
+\begin{figure}[ht]
+\centering
+
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\linewidth]{issf_rifle.png}
+\caption{ISSF 10\,m Air Rifle target \cite{issf2023_rules}}
+\label{fig:issf_rifle_target}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\linewidth]{issf_pistol.png}
+\caption{ISSF 10\,m Air Pistol target \cite{issf2023_rules}}
+\label{fig:issf_pistol_target}
+\end{minipage}
+
+\end{figure}
+
+\begin{table}[ht]
+\centering
+
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\caption{ISSF 10\,m Air Rifle target ring diameters \cite{issf2023_rules}}
+\label{tab:airrifle_rings}
+\begin{tabular}{cc}
+\hline
+\textbf{Ring} & \textbf{Diameter (mm)} \\
+\hline
+10 & 0.5 \\
+9  & 5.5 \\
+8  & 10.5 \\
+7  & 15.5 \\
+6  & 20.5 \\
+5  & 25.5 \\
+4  & 30.5 \\
+3  & 35.5 \\
+2  & 40.5 \\
+1  & 45.5 \\
+\hline
+\end{tabular}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\caption{ISSF 10\,m Air Pistol target ring diameters \cite{issf2023_rules}}
+\label{tab:airpistol_rings}
+\begin{tabular}{cc}
+\hline
+\textbf{Ring} & \textbf{Diameter (mm)} \\
+\hline
+10 & 11.5 \\
+9  & 27.5 \\
+8  & 43.5 \\
+7  & 59.5 \\
+6  & 75.5 \\
+5  & 91.5 \\
+4  & 107.5 \\
+3  & 123.5 \\
+2  & 139.5 \\
+1  & 155.5 \\
+\hline
+\end{tabular}
+\end{minipage}
+
+\end{table}
+
+Figure~\ref{fig:issf_rifle_target} illustrates the ISSF 10\,m air rifle paper target, while
+Fig.~\ref{fig:issf_pistol_target} shows the corresponding 10\,m air pistol target. The
+official ring diameters for both targets are listed in
+Table~\ref{tab:airrifle_rings} and Table~\ref{tab:airpistol_rings}, respectively.
+
+For the 10\,m air rifle paper target, the innermost ring (ring~10) is reduced to a small
+white dot at the center of the target with a diameter of 0.5\,mm, as shown in
+Fig.~\ref{fig:issf_rifle_target}. The ring diameters increase arithmetically by 5\,mm up to
+the outermost ring (ring~1), which has a diameter of 45.5\,mm, as summarized in
+Table~\ref{tab:airrifle_rings}. The inner black region extends from ring~10 to ring~4, with
+a total diameter of 30.5\,mm.
+
+The 10\,m air pistol paper target is larger, as shown in Fig.~\ref{fig:issf_pistol_target}.
+The innermost ring (ring~10) has a diameter of 11.5\,mm, while the outermost ring (ring~1)
+has a diameter of 155.5\,mm. The ring diameters increase arithmetically by 16\,mm, as listed
+in Table~\ref{tab:airpistol_rings}. The inner black region extends from ring~10 to ring~7,
+with a diameter of 59.5\,mm.
+
+The dimensions summarized in Fig.~\ref{fig:issf_rifle_target} and
+Table~\ref{tab:airrifle_rings} highlight the extremely small scale of the air rifle target,
+which directly motivates the accuracy analysis presented in the following section.
+
+The continuous radial scoring model can be written as
+\begin{equation}
+  s_c(r) = 11.0 - k\,r ,
+  \label{eq:continuous_score}
+\end{equation}
+where $r$ is the radial distance between the shot center and the target center, and $k$ is a
+scale factor and corresponds to the inverse radius increment
+\begin{equation}
+    k = \frac{2}{\Delta d_{1.0}}
+\end{equation}
+between adjacent rings.
+
+ISSF decimal scoring applies rounding and clipping to the continuous scoring model with the formula
+\begin{equation}
+  s(r) =
+  \mathrm{clip}\!\left(
+    \frac{\left\lfloor 10\, s_c(r) \right\rfloor}{10},
+    0,
+    10.9
+  \right),
+  \label{eq:issf_decimal_score}
+\end{equation}
+where $\lfloor \cdot \rfloor$ denotes the floor operator and
+$\mathrm{clip}(x,a,b)=\min(\max(x,a),b)$ limits the score to the valid ISSF range.
+
+\section{Accuracy Requirements}
+
+The scoring scale resolution and the smallest paper target size impose accuracy requirements for any scoring system.
+Due to the small dimension of the 10m-air-rifle paper target, the required accuracy goes into the sub milimeter range.
+
+To understand the accuracy requirements, we analyse the measurements relative to one interval of constant score. The length of the interval
+is given by
+
+\begin{equation}
+  \Delta r_{0.1} = 0.05 \cdot \Delta d_{1.0}
+\end{equation}
+
+and corresponds to the increment in radial distance that produces a change of 0.1 in the continuous score.
+
+The measurement error is modeled as a uniform random variable in the interval $[-E,\,E]$.
+Let $R$ denote the ground-truth radial position within a decimal scoring interval and let
+$\varepsilon$ denote the measurement error. The measured value is $M = R + \varepsilon$.
+Assuming $R$ and $\varepsilon$ are independent, the probability density function (pdf) of $M$
+is given by the convolution of the pdfs of $R$ and $\varepsilon$, as illustrated in
+Fig.~\ref{fig:measurement_pdf}.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\linewidth]{radial_error_pdf.png}
+  \caption{Bounded-error model: uniform ground-truth position within a scoring interval and uniform measurement error, and the resulting measurement pdf obtained by convolution.}
+  \label{fig:measurement_pdf}
+\end{figure}
+
+Regardless of how small the error is, there will always be a non-zero probability for incorrect scoring by 0.1.
+The probability of correctly scoring a bullet is given by the integral of the pdf of the measurement within the scoring interval,
+which is
+
+\begin{equation}
+  P = 1 - \frac{E}{2*\Delta r_{0.1}}
+\end{equation}.
+
+Solving for the accuracy E, we obtain:
+
+\begin{equation}
+  E = 2\,\Delta r_{0.1}\,(1 - P)
+\end{equation}.
+
+\begin{table}[htbp]
+\centering
+\caption{Required measurement accuracy $E$ as a function of the probability $P$ of correct decimal scoring for a 10\,m air rifle target ($\Delta r_{0.1} = 0.25$\,mm).}
+\label{tab:accuracy_vs_probability}
+\begin{tabular}{cc}
+\hline
+\textbf{Probability $P$ (\%)} & \textbf{Required accuracy $E$ (mm)} \\
+\hline
+80  & 0.10 \\
+85  & 0.075 \\
+90  & 0.050 \\
+95  & 0.025 \\
+99  & 0.005 \\
+\hline
+\end{tabular}
+\end{table}
+
+
+Table~\ref{tab:accuracy_vs_probability} shows that achieving high probabilities of correct
+decimal scoring requires increasingly strict bounds on the radial measurement error.
+For the 10\,m air rifle target, a probability of 90\% already requires a measurement
+accuracy better than 0.05\,mm, while probabilities above 95\% demand accuracies below
+0.03\,mm. These values illustrate the high accuracy requirements imposed by ISSF
+decimal scoring and motivate the use of precise geometric localization methods in
+automatic paper target scoring systems.
+
+\section{Classical Computer Vision Approaches}
+\label{sec:classical_methods}
+
+Classical computer vision approaches to paper target scoring typically rely on explicit image
+segmentation and geometric reasoning. In contrast to learning-based methods, they aim to
+recover physically meaningful quantities---such as the target center, ring radii and bullet-hole
+centers---and then compute the score by applying the official scoring rules. These pipelines can
+achieve high localization accuracy under controlled imaging conditions, but they often become
+fragile when lighting varies, the background is cluttered, or bullet holes overlap.
+
+\subsection{Geometric scoring with perspective correction and contour-based circle fitting}
+A representative geometric pipeline is proposed by Yu \textit{et al.}~\cite{yu2023_contourcircle},
+who score paper targets using only classical image processing and circle fitting. The method first
+computes a projective transformation to obtain a fronto-parallel view of the target, compensating
+for camera viewpoint. After perspective correction, the outer contour of the target is extracted and
+a circle is fitted to estimate the target center and scale. Bullet holes are then isolated via
+thresholding and morphological operations, and connected components are extracted. For each
+bullet-hole region, contours are computed and a circle model (e.g., minimum enclosing circle or
+least-squares circle fitting) is fitted to estimate the bullet-hole center. Finally, the score is computed
+from the distance between the bullet-hole center and the target center using the known ISSF ring
+geometry.
+
+The main strength of this approach is that it reconstructs the target geometry and estimates
+centers via contour-based fitting, which is well-aligned with ISSF-compliant scoring. However, it
+assumes that segmentation is reliable, which is typically achieved under controlled backgrounds and
+stable lighting. As a result, performance degrades when bullet holes have bad contrast against the
+paper, lighting changes, or when bullet holes overlap, since the connected components
+no longer correspond to individual impacts.
+
+
+
+\subsection{Segmentation of overlapping bullet holes using watershed and circle fitting}
+Overlapping impacts are a major failure mode for connected-component-based
+pipelines. Liu \textit{et al.}~\cite{liu2023_watershed} address this scenario using an improved
+watershed segmentation strategy. Their pipeline applies grayscale preprocessing and morphological
+operations, followed by area-based filtering to suppress non-hole regions such as ring markings and
+text. Overlapping bullet holes are then separated using a distance-transform-driven watershed method,
+and boundaries are extracted. For each separated region, least-squares
+circle fitting is used to estimate individual hole centers and radii.
+
+This work demonstrates that, when the preprocessing is successful, classical segmentation can separate
+strongly overlapping holes and still recover geometrically meaningful centers. Nonetheless, the method
+depends on threshold choices and assumptions about bullet-hole appearance (e.g., expected region
+areas). In addition, the paper focuses on cropped regions around overlapping holes rather than full
+target images, so it does not fully address end-to-end robustness in a complete target scoring system.
+
+
+
+\subsection{Temporal differencing and Hough-based circle detection for live scoring}
+A complementary classical strategy for live scoring is to exploit temporal information. Li
+\textit{et al.}~\cite{li2022_imagesubtraction_hough} propose a method that processes pairs of images
+captured before and after each shot. After geometric correction (homography), the pre-shot image is
+subtracted from the post-shot image, only keeping the pixels that changed.
+The pipeline then applies binarization, morphological cleaning and edge detection, followed by a
+generalized Hough transform to detect the circular bullet-hole contour and estimate its center. A Hough
+transform can also be used to localize a reference ring or the target center, enabling score computation
+from the measured radial distance.
+
+The main advantage of temporal differencing is facilitating the segmentation task. 
+However, it requires a stable camera and assumes that
+exactly one new shot occurs between consecutive frames; camera motion or multiple new impacts can
+break the subtraction assumption. Despite these constraints, temporal differencing is attractive as an
+optional component in real-time systems where images are captured continuously and the shot timing is
+known.
+
+\subsection{Discussion}
+Overall, classical methods are attractive because they compute scores from explicit target geometry
+and can be computationally lightweight. Their limitations arise primarily from the sensitivity of
+segmentation to illumination changes, background clutter and target mounting frames (like a metal frame).
+In addition, classical pipelines are typically parameter-heavy, relying on multiple thresholds
+and heuristic parameters (e.g., intensity thresholds, morphological kernel sizes and area constraints)
+that must be carefully tuned for each imaging setup. These observations motivate hybrid designs
+that preserve geometric scoring and center estimation, while improving robustness through stronger
+detection mechanisms (e.g., learning-based detectors or temporal differencing when available).
+
+\section{Deep Learning-Based Approaches}
+\label{sec:deep_learning_methods}
+
+Recent work has explored the use of deep learning, particularly convolutional neural networks
+(CNNs), for automatic detection of bullet holes on paper targets. These approaches typically frame
+the problem as an object detection or instance segmentation task, with the goal of localizing bullet
+holes under challenging imaging conditions.
+
+A representative study is presented by Butt \textit{et al.}~\cite{butt2024_bulletholes_yolov8}, who apply the
+YOLOv8 object detection framework to detect bullet holes on indoor shooting targets. The authors
+report high detection performance, with mean Average Precision (mAP) values exceeding 95\% under
+controlled indoor conditions. A key advantage of the YOLOv8-based approach is its computational
+efficiency: inference times are on the order of a few milliseconds per
+image, making the method suitable for real-time or near-real-time applications. The study
+demonstrates that CNN-based detectors can robustly identify bullet holes despite moderate lighting
+variations and background clutter, outperforming classical threshold-based methods in detection
+reliability.
+
+However, the detected bullet holes are represented by bounding boxes, and the paper does not
+address sub-region analysis or precise center estimation beyond the detector output. Consequently,
+while detection accuracy is high, the geometric precision required for ISSF-compliant decimal
+scoring is not directly achieved.
+
+A related line of work is presented by Ahmed \textit{et al.}~\cite{ahmed2023_maskrcnn_resnet}, who employ a
+Mask R-CNN architecture with a ResNet-50 backbone to detect and segment bullet holes on outdoor
+shooting targets. This work demonstrates the robustness of deep learning methods in more adverse
+conditions, including variable illumination, weather effects and non-uniform backgrounds. The use
+of instance segmentation allows the network to recover the approximate shape of bullet holes rather
+than only bounding boxes, which is advantageous for visual interpretation and robustness.
+
+Despite this increased robustness, the reported localization accuracy remains limited by the
+resolution of the segmentation masks and the network output grid. The study focuses primarily on
+detection and segmentation performance metrics and does not explicitly analyze the accuracy of the
+estimated bullet-hole centers relative to the precision required for ISSF decimal scoring. In
+addition, overlapping bullet holes are not explicitly addressed, and the segmentation results are
+evaluated mainly on isolated impacts.
+
+Overall, deep learning approaches offer significant advantages in terms of robustness to illumination
+changes, background clutter and target wear, and they enable fast, real-time detection on low-cost
+hardware. However, accurately estimating bullet-hole center coordinates with sub-millimeter
+precision remains a major challenge. The detector outputs (bounding boxes or coarse masks) are not
+sufficiently precise for high-accuracy scoring on their own, and none of the reviewed deep learning
+studies explicitly address the problem of overlapping bullet holes. These limitations motivate hybrid
+approaches that combine CNN-based detection for robustness with classical geometric refinement for
+precision.
+
+\section{Discussion and Summary}
+\label{sec:chapter2_summary}
+
+This chapter reviewed the physical and regulatory constraints imposed by ISSF paper targets and
+analyzed their implications for automatic scoring systems. Due to the small dimensions of the
+10\,m air rifle target and the use of decimal scoring, even small localization errors can lead to
+incorrect scores. A simple bounded-error model was introduced to illustrate how scoring accuracy
+depends directly on the measurement error, highlighting the high accuracy requirements
+imposed by ISSF rules.
+
+The state of the art in computer-vision-based target scoring was then reviewed. Classical image
+processing approaches rely on geometric modeling and can achieve high localization
+accuracy under controlled conditions. However, these methods are sensitive to illumination
+changes, background clutter and overlapping bullet holes, and they often require
+careful tuning of multiple heuristic parameters. In contrast, deep learning-based approaches
+demonstrate strong robustness and real-time performance, particularly for bullet-hole detection,
+but their outputs are typically limited to bounding boxes or coarse segmentation masks (Mask R-CNN), which do
+not provide the geometric precision required for ISSF-compliant decimal scoring.
+
+Overall, the literature shows that no single approach fully satisfies both the robustness and
+precision requirements of automatic ISSF paper target scoring. These observations motivate a
+hybrid system design that combines the robustness of learning-based detection with the precision
+of classical geometric refinement. The following chapter presents the proposed system architecture
+based on this hybrid approach.

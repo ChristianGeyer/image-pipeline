@@ -1,0 +1,113 @@
+Title:
+ISSF Technical Rules – Paper Targets and Scoring
+
+Organization:
+International Shooting Sport Federation (ISSF)
+
+Year:
+2022/2023 Approved Version
+
+Scope:
+Defines the official dimensions, tolerances and scoring rules for ISSF paper targets used in 10 m air rifle and 10 m air pistol events.
+
+--------------------------------------------------
+SCORING SYSTEM
+--------------------------------------------------
+
+Rifle and pistol targets may be scored in:
+- Full ring values (integer: 10, 9, 8, …)
+- Decimal ring values (e.g., 10.0 – 10.9) when electronic or electronic-paper systems are used
+
+Decimal scoring:
+Each full scoring ring is subdivided into 10 equal-width radial bands.
+Scores are:
+10.0, 10.1, …, 10.9
+9.0, 9.1, …, 9.9
+etc.
+
+This means the radial scoring resolution is:
+1/10 of the width of a scoring ring.  :contentReference[oaicite:1]{index=1}
+
+--------------------------------------------------
+10 m AIR RIFLE TARGET
+--------------------------------------------------
+
+Target type: Paper target for 10 m air rifle (standing)
+
+Ring diameters (mm):  :contentReference[oaicite:2]{index=2}
+10 ring: 0.5 ± 0.1
+9 ring: 5.5 ± 0.1
+8 ring: 10.5 ± 0.1
+7 ring: 15.5 ± 0.1
+6 ring: 20.5 ± 0.1
+5 ring: 25.5 ± 0.1
+4 ring: 30.5 ± 0.1
+3 ring: 35.5 ± 0.1
+2 ring: 40.5 ± 0.1
+1 ring: 45.5 ± 0.1
+
+Special:
+- The 10-ring is a white dot (0.5 mm).
+- There is no black bullseye at the center.
+- Black area extends from ring 4 to ring 9 (diameter 30.5 mm).
+- Ring thickness: 0.1 to 0.2 mm.
+- Minimum visible target card: 80 mm × 80 mm.
+- Background card recommended: 170 mm × 170 mm.
+
+Implication:
+The 10-ring diameter is only 0.5 mm → sub-millimeter accuracy is required to score correctly.
+
+--------------------------------------------------
+10 m AIR PISTOL TARGET
+--------------------------------------------------
+
+Target type: Paper target for 10 m air pistol
+
+Ring diameters (mm):  :contentReference[oaicite:3]{index=3}
+10 ring: 11.5 ± 0.1
+9 ring: 27.5 ± 0.1
+8 ring: 43.5 ± 0.2
+7 ring: 59.5 ± 0.5
+6 ring: 75.5 ± 0.5
+5 ring: 91.5 ± 0.5
+4 ring: 107.5 ± 0.5
+3 ring: 123.5 ± 0.5
+2 ring: 139.5 ± 0.5
+1 ring: 155.5 ± 0.5
+
+Inner 10:
+5.0 ± 0.1 mm
+
+Black area:
+From ring 7 to ring 10 = 59.5 mm diameter
+
+Ring thickness:
+0.1 to 0.2 mm
+
+Minimum visible target card:
+170 mm × 170 mm
+
+Zone numbering:
+Rings 1–8 numbered, 9 and 10 are not numbered.
+
+--------------------------------------------------
+SCORING PRECISION REQUIREMENT
+--------------------------------------------------
+
+For electronic or electronic-paper systems:
+- Required accuracy is at least one-half of one decimal scoring ring.  :contentReference[oaicite:4]{index=4}
+
+This implies:
+If one decimal ring is (ring width / 10), the scoring error must be less than (ring width / 20).
+
+For 10 m air rifle:
+Ring width between 10 and 9 rings:
+(5.5 mm – 0.5 mm) / 2 = 2.5 mm radial spacing → 0.25 mm per decimal ring.
+Half of that ≈ 0.125 mm required accuracy.
+
+Therefore, ISSF scoring requires **sub-0.2 mm localization precision** for top-level competition.
+
+--------------------------------------------------
+Relevance to my thesis:
+
+These specifications define the physical limits that any vision-based scoring system must meet. For 10 m air rifle, the 10-ring is only 0.5 mm in diameter, and decimal scoring divides this into 0.1-ring steps, meaning bullet hole centers must be localized with approximately 0.1 mm precision to be ISSF compliant.

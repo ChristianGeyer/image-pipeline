@@ -1,0 +1,55 @@
+Title:
+Deep Learning-Based Bullet Hole Detection in Outdoor Shooting Ranges Using Mask R-CNN and ResNet
+
+Authors:
+Ahmed et al.
+
+Year:
+2023
+
+Input:
+RGB images of paper shooting targets captured in outdoor military shooting ranges. Images include difficult conditions such as shadows, rain, dirt, uneven lighting, and background clutter.
+
+Method:
+Two-stage deep learning pipeline:
+
+1) Target segmentation:
+   A Mask R-CNN network is trained to segment the paper target from the background. This isolates the green paper target and removes environmental clutter such as grass, sky, and target holders.
+
+2) Bullet hole detection:
+   A ResNet-50 CNN is trained on cropped target regions to classify and localize bullet holes. The network treats bullet holes as visual objects and outputs their positions.
+
+The system does not use any geometric model of the target or scoring rings.
+
+Dataset:
+- 400 real outdoor images of shooting targets
+- Images collected under varying weather and lighting conditions
+- Two separate datasets:
+  - One for training Mask R-CNN (target segmentation)
+  - One for training ResNet-50 (bullet hole detection)
+
+Evaluation metrics:
+- Mask R-CNN: mean Average Precision (mAP) for target segmentation
+- ResNet-50: classification accuracy for bullet hole detection
+
+Accuracy:
+- Target segmentation (Mask R-CNN): mAP ≈ 83%
+- Bullet hole detection (ResNet-50): accuracy ≈ 86%
+
+These values are significantly lower than indoor CNN systems but demonstrate robustness to outdoor conditions.
+
+Speed:
+Not explicitly reported. The system requires two CNN passes (segmentation + detection), making it heavier than single-stage detectors like YOLO.
+
+Key idea:
+Use deep learning to handle difficult outdoor environments by first isolating the target with instance segmentation and then detecting bullet holes inside the segmented region.
+
+Limitations:
+- Does not compute bullet hole center with geometric precision
+- Does not perform ISSF-compliant scoring
+- No use of target ring dimensions
+- Accuracy is limited compared to indoor CNN-based systems
+- Requires two neural networks, increasing computational cost
+
+Relevance to my thesis:
+This paper shows that CNN-based approaches can robustly detect targets and bullet holes in uncontrolled outdoor conditions, but they do not provide the geometric accuracy needed for ISSF scoring. This supports the need for a hybrid system: CNN for robust detection combined with classical geometry for precise scoring.

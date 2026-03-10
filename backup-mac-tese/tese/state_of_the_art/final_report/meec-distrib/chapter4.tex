@@ -1,0 +1,42 @@
+\chapter{Final Considerations}
+\label{chap:final_considerations}
+
+This work addressed the problem of automatic scoring of ISSF paper shooting targets
+using low-cost computer vision techniques. The motivation for the study arises from the need for
+accessible scoring systems in amateur and training environments, where existing electronic
+solutions are often too expensive or require specialized infrastructure.
+
+An analysis of the physical characteristics and scoring rules of ISSF paper targets showed that
+decimal scoring imposes high accuracy requirements, particularly for 10\,m air rifle
+targets. A simple bounded-error model was introduced to illustrate how measurement accuracy
+directly affects the probability of correct scoring, highlighting that even small localization
+errors can result in score deviations. This analysis established the fundamental constraints that
+any automatic scoring system must satisfy, independently of the specific algorithms employed.
+
+The state of the art in computer-vision-based target scoring was reviewed, covering both
+classical image-processing methods and recent deep learning approaches. Classical methods
+rely on explicit geometric modeling and can achieve high precision under controlled conditions,
+but they are sensitive to illumination changes, background clutter and overlapping
+bullet holes, and often require careful parameter tuning. Deep learning-based approaches are
+more robust and have low inference times, but the precision of their outputs is 
+typically insufficient for high-accuracy ISSF
+scoring when used alone. The literature review indicates that neither class of methods
+alone fully addresses the combined requirements of robustness and precision.
+
+Based on these observations, a hybrid system architecture was proposed. The system combines
+robust detection mechanisms, potentially based on CNNs, with
+geometric refinement stages designed to recover accurate bullet-hole and target center
+coordinates. A modular image-processing pipeline was outlined, allowing different strategies
+to be evaluated for target localization, bullet-hole detection, overlap handling and
+geometric refinement.
+
+The proposed architecture defines a clear structure for the dissertation phase, during which
+the individual modules will be implemented, evaluated and integrated into a complete scoring
+system. Future work will focus on selecting and refining for each module,
+assessing their performance under realistic operating conditions, and
+quantifying the scoring accuracy using both synthetic and real target data.
+
+Overall, this work establishes a solid foundation for the development of a low-cost,
+computer-vision-based automatic scoring system for ISSF paper targets, and clearly defines
+the technical challenges and methodological directions to be addressed in the subsequent
+implementation and evaluation stages.

@@ -1,0 +1,5 @@
+display_seconds: 1.0
+downsample_factor: 2
+N_frames: 10
+T_seconds: 3.0
+T0_seconds: 10.0

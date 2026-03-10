@@ -1,0 +1,62 @@
+Title:
+Vision-Based Automatic Scoring of Shooting Targets Using Perspective Correction and Contour-Based Circle Fitting
+
+Authors:
+[First author] et al.
+
+Year:
+2023
+
+Input:
+RGB images of ISSF-style paper targets acquired using a fixed camera mounted in front of the target. Images include the full printed target and background, captured at an angle relative to the target plane.
+
+Method:
+Purely classical computer vision and geometry-based pipeline. The main steps are:
+
+1) Perspective correction:
+   A projective (homography) transformation is computed to map the camera image into a fronto-parallel, undistorted view of the target. This ensures that the target becomes circular again even when viewed from an angle.
+
+2) Target extraction:
+   - Convert image to grayscale
+   - Apply thresholding
+   - Use morphological operations to clean noise
+   - Extract the outer contour of the target
+   - Fit a circle to the outer contour to estimate the target center and scale
+
+3) Bullet hole detection:
+   - Thresholding and morphology isolate dark regions
+   - Connected components are extracted
+   - For each bullet hole region, contours are computed
+   - A minimum enclosing circle (or least-squares circle fit) is applied to each contour to estimate bullet hole center and radius
+
+4) Scoring:
+   - The distance between each bullet hole center and the target center is computed
+   - Known ISSF ring radii are used to determine the score
+   - Ring intersection rule is applied (highest ring touched)
+
+This approach explicitly uses geometry and ISSF ring definitions instead of classification.
+
+Dataset:
+The paper uses images of real ISSF paper targets captured in a controlled shooting range. The targets are imaged against a uniform background to simplify segmentation. The dataset consists of multiple targets with several bullet holes per target.
+
+Evaluation metrics:
+- Center localization error (pixel or mm)
+- Correct scoring rate (percentage of bullet holes assigned the correct score)
+
+Accuracy:
+The paper reports high accuracy in center localization and scoring when the background is controlled and the target surface is clean. The method reliably detects bullet hole centers and target center under these conditions.
+
+Speed:
+The method runs in real time on a standard CPU because it only uses thresholding, morphology, contour extraction, and circle fitting (no neural networks).
+
+Key idea:
+Instead of learning to classify scores, the system reconstructs the physical geometry of the target. Bullet hole centers are computed by contour-based circle fitting, and ISSF ring radii are used to determine the score in a physically meaningful way.
+
+Limitations:
+- Requires a uniform, well-contrasted background to separate bullet holes from the paper.
+- Sensitive to lighting changes and shadows.
+- Overlapping bullet holes are difficult to separate.
+- Requires camera calibration and stable camera mounting for perspective correction.
+
+Relevance to my thesis:
+This paper provides a physically correct ISSF-compliant scoring method based on geometry. When combined with a CNN-based detector to robustly find bullet hole regions, this approach forms a powerful hybrid system: CNN for robust detection + classical geometry for sub-millimeter accurate scoring.

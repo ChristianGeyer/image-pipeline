@@ -1,0 +1,160 @@
+\chapter{Proposed System Architecture}
+\label{chap:chapter3}
+
+\section{System Overview}
+\label{sec:system_overview}
+
+The proposed system is designed to provide automatic scoring of ISSF paper targets
+using a low-cost USB camera and computer vision techniques. In addition to shot detection
+and scoring, the system supports data storage and visualization of a virtual target to enable the management of
+athletes, training sessions and competitions.
+
+At a high level, the system consists of five main components: image acquisition, image
+processing, scoring logic, data management and visualization. A fixed USB camera captures
+images of the paper target after each shot and transmits them to a personal computer for
+processing. The image-processing subsystem analyzes the acquired images to localize the target,
+detect bullet holes and estimate their geometric properties. Based on these measurements, the
+scoring module computes ISSF-compliant decimal scores. The resulting coordinates and scores are
+stored in a database, where they are associated with athletes, sessions and competitions, and
+can be visualized through a virtual target representation.
+
+Figure~\ref{fig:system_architecture} illustrates the high-level architecture of the proposed
+system and the main processing stages from image acquisition to target visualization.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[
+    width=0.9\linewidth,
+    height=0.45\textheight,
+    keepaspectratio
+  ]{system_architecture.png}
+  \caption{High-level architecture of the proposed system.}
+  \label{fig:system_architecture}
+\end{figure}
+
+
+While the complete system provides end-to-end functionality for automatic target scoring, the
+primary focus of this thesis is the image-processing subsystem. In particular, the research
+addresses the problem of robust and accurate bullet-hole localization under the constraints
+identified in Chapter~2. The remaining components, including data storage and visualization,
+serve to integrate the image-processing results into a usable scoring system but are not the
+main object of investigation.
+
+The image-processing subsystem is designed as a modular pipeline, allowing different detection
+and refinement strategies to be evaluated and compared. Robust bullet-hole detection is treated
+separately from precise geometric refinement, enabling the system to combine complementary
+approaches and to merge robustness and accuracy. The following sections describe the design
+of this subsystem in detail, beginning with image acquisition assumptions and progressing
+through detection, refinement and scoring.
+
+
+\section{Image Acquisition and Operating Assumptions}
+\label{sec:image_acquisition}
+
+Images of the paper target are acquired using a fixed USB camera connected to a personal
+computer. The camera is mounted at a known and approximately constant distance from the
+target and remains stationary during operation. This fixed setup allows the use of geometric
+constraints and calibration procedures in later processing stages. 
+
+Figure~\ref{fig:camera_scheme} shows that the camera will be placed at an angle, looking
+at the targets from the side of the shooting line.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[
+    width=0.85\linewidth,
+    height=0.45\textheight,
+    keepaspectratio
+  ]{camera_scheme.png}
+  \caption{Camera placement relative to the shooting line and paper target.}
+  \label{fig:camera_scheme}
+\end{figure}
+
+
+The system is intended to operate in an indoor shooting range, where lighting conditions can be
+controlled to a certain extent but are not assumed to be perfectly uniform. Variations in
+illumination, shadows and reflections may still occur. No additional white background board is
+assumed behind the target by default.
+
+However, the operating environment allows for limited control of background appearance if
+required. In particular, the use of a uniform background color behind the target can be
+introduced to make segmentation easier and more robust. This option provides additional flexibility while
+remaining consistent with the low-cost and controlled indoor deployment scenario considered in
+this work.
+
+Images are captured at a sufficient resolution to allow reliable detection of bullet holes and
+target features. Image acquisition is triggered after each shot, either manually or through an
+external signal, such that each image contains at most one new bullet hole relative to the
+previous state of the target.
+
+These assumptions reflect a realistic low-cost deployment scenario and are consistent with the
+constraints discussed in Chapter~2. They guide the design of the image-processing pipeline
+described in the following sections.
+
+\section{Image-Processing Subsystem and Considered Methods}
+\label{sec:ip_methods}
+
+The image-processing subsystem is structured as a sequence of modular processing stages, as
+illustrated in Fig.~\ref{fig:system_architecture}. For each stage, different algorithmic strategies
+are considered based on the trade-off between robustness, accuracy and computational
+complexity. This section outlines the main methods.
+
+\subsection*{Target Localization}
+
+Accurate localization of the target center is essential, as all subsequent measurements are
+defined relative to this reference. Two complementary strategies are considered. A learning-based
+approach may be used to detect the target or the central black region using a CNN
+trained on target images captured under different conditions, including targets
+with existing bullet holes. Alternatively, classical image-processing methods based on intensity
+thresholding and geometric constraints may be applied to segment the black region of the target
+and estimate its center. In both cases, the initial detection defines a region of interest that can
+be further refined using classical methods operating on a cropped and normalized image.
+
+\subsection*{Bullet-Hole Detection (Localization)}
+
+Bullet-hole detection localizes all bullet holes within the target region.
+Learning-based object detection methods, including both
+pretrained detectors (e.g., YOLO-style or region-based CNNs) and custom lightweight CNNs,
+are considered for this stage. To reduce data collection effort and improve
+generalization, synthetic data generation may be explored to pretrain networks on circular
+shapes resembling bullet holes under varying contrast and noise conditions.
+
+As an alternative or complement to learning-based detection, classical approaches based on
+intensity thresholding and morphological operations may be employed, particularly in scenarios
+where background appearance can be controlled. Under controlled conditions, these methods are very robust.
+
+\subsection*{Overlap Handling and Temporal Information}
+
+In cases where multiple bullet holes are present in close proximity, a single detected region may
+contain more than one impact. To address this situation, segmentation-based techniques such as
+watershed algorithms driven by distance transforms are considered for separating overlapping
+bullet holes. The number of impacts may be estimated to guide the
+application of such methods.
+
+When images are acquired sequentially during live shooting, temporal information can also be
+used. Image subtraction between consecutive frames may be used to isolate newly created
+bullet holes. In this approach, the camera movement must be approximately zero and shooting timing
+must be detected.
+
+\subsection*{Geometric Refinement and Center Estimation}
+
+Following coarse detection, a geometric refinement stage is applied to estimate precise bullet-hole
+properties, including center coordinates and hole radius. Classical contour-based methods are
+considered for this purpose, relying on thresholding, edge detection and contour extraction within
+a cropped region of interest. Circle fitting techniques can then be applied to the extracted
+contours to estimate the bullet-hole center.
+
+As an alternative, Hough transform-based circle detection may be used to directly estimate
+circle parameters from edge maps. Learning-based refinement approaches, such as small regression
+or segmentation networks operating on localized regions, are also considered as potential
+alternatives to purely classical methods.
+
+\subsection*{Scoring Integration}
+
+The outputs of the target localization and geometric refinement stages are combined to compute
+radial distances between bullet-hole centers and the target center. These distances are then
+converted into decimal scores according to the ISSF scoring rules described in Chapter~2. The
+resulting shot coordinates and scores are forwarded to the scoring, data management and
+visualization components of the system, and a virtual target representation is generated.
+
+

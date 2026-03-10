@@ -1,0 +1,62 @@
+Title:
+Automatic Target-Scoring Model Based on Image Processing
+
+Authors:
+Li, Zhang, Cheng, Xu, Li, Ma
+
+Year:
+2022
+
+Input:
+Pairs of RGB images of the same paper target taken before and after each shot. The camera is placed 50 meters from the target at a fixed angle. The system assumes that only one new bullet hole appears between two consecutive frames.
+
+Method:
+Classical image processing with temporal differencing and Hough transform. The pipeline is:
+
+1) Perspective correction:
+   A homography (projective transform) is computed using four known corner points of the target to remove geometric distortion caused by camera angle.
+
+2) Image subtraction:
+   The image taken before the shot is subtracted from the image after the shot. This removes old bullet holes, ring lines, and background, leaving only the newly added bullet hole as a bright region.
+
+3) Preprocessing:
+   - Grayscale conversion
+   - Binarization (threshold = 15)
+   - Morphological closing (5×5 kernel) to fill cracks
+   - Morphological opening (3×3 kernel) to remove small protrusions
+   - Canny edge detection to extract clean bullet hole contours
+
+4) Bullet hole detection:
+   A gradient-based generalized Hough transform is applied to the edge image to detect circular shapes and compute the center of the new bullet hole.
+
+5) Target center and scoring:
+   - Hough transform is also applied to detect the 10-ring circle
+   - The Euclidean distance between the bullet hole center and target center is computed
+   - The distance is compared to known ring radii to determine the score
+
+Dataset:
+Real images captured at a military shooting range. Targets are photographed continuously, and one shot is fired between consecutive frames. The target type is a chest-ring military target, not ISSF sport targets.
+
+Evaluation metrics:
+- Bullet hole detection accuracy
+- Processing time per shot
+
+Accuracy:
+Over 100 consecutive shots:
+- Bullet hole detection accuracy: 92%
+- Average processing time: 867 ms per shot
+
+Speed:
+Real-time capable on CPU (less than 1 second per shot).
+
+Key idea:
+By subtracting the pre-shot image from the post-shot image, the algorithm isolates only the newly added bullet hole, making detection much easier and more robust than detecting holes on a cluttered target.
+
+Limitations:
+- Requires that exactly one new shot occurs between frames.
+- Requires camera stability; any vibration breaks image subtraction.
+- Cannot detect multiple new bullet holes at once.
+- Not suitable for already heavily damaged targets unless a reference image exists.
+
+Relevance to my thesis:
+This paper introduces a powerful complementary strategy to static-image scoring: time-based image subtraction. In a live shooting system, this can isolate new bullet impacts with high accuracy, and when combined with geometric or CNN-based detection, can greatly improve robustness and scoring precision.
