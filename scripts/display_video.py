@@ -1,26 +1,49 @@
+# python libraries
 import cv2
 import numpy as np
 import yaml
 import time
-from utils import get_project_root
 from pathlib import Path
+
+# my library
+from utils import (
+    get_project_root,
+    RateMonitor,
+)
 from camera import (
     CameraConfig,
-    open_camera_by_index,
     open_configured_camera,
     rotate_frame, 
     flip_frame,
 )
 
+# paths
 ROOT = get_project_root(Path.cwd())
 CONFIG = ROOT / "config" / "camera_config.yaml" 
 
-def downsampled_dimensions(cfg, downsample_factor):
-    w_downsampled = int(cfg.wreq // downsample_factor)
-    h_downsampled = int(cfg.hreq // downsample_factor)
-    if cfg.rotation_deg in (90, 270):
-        return h_downsampled, w_downsampled
-    return w_downsampled, h_downsampled
+class DisplayFrame:
+    def __init__(self,
+                 cap, 
+                 cfg, 
+                 display_size):
+        self.cap = cap
+        self.cfg = cfg
+        self.display_size = display_size # (w, h)
+
+def get_display_frame(frame, df):
+    cap = df.cap
+    cfg = df.cfg
+    w_display, h_display = df.display_size
+    # read frame
+    ret, frame = cap.read()
+    # rotate frame
+    frame = rotate_frame(frame, cfg)
+    # flip frame
+    frame = flip_frame(frame, cfg)
+    # resize frame
+    frame_display = cv2.resize(frame, (w_display, h_display))
+    # display frame
+    return frame_display
 
 def main():
     # load camera_config dictionary
@@ -29,57 +52,42 @@ def main():
     # create camera config object
     cfg = CameraConfig(**cfg_dict)
     # open camera
-    #cap = open_camera_by_index(cfg)
-    # set resolution
-    #cap.set(cv2.CAP_PROP_FRAME_WIDTH, cfg.wreq)
-    #cap.set(cv2.CAP_PROP_FRAME_HEIGHT, cfg.hreq)
-    # open camera
-    cap = open_configured_camera(cfg)
+    cap, wframes = open_configured_camera(cfg)
+    h, w = wframes[0].shape[:2]
+    # display dimensions
+    w_display = 480
+    if cfg.rotation_deg in (90, 270):
+        h_display = int(w_display * w / h)
+    else:
+        h_display = int(w_display * h / w)
 
-    # display downsample
-    downsample_factor = 2
-    # downsampled dimensions
-    w_display, h_display = downsampled_dimensions(cfg, downsample_factor)
-    print(f"downsampled to {w_display}x{h_display}.")
+    print(f"display frame resolution: {w_display}x{h_display}.")
 
-    # warmup frames
-    warmup_frames = 5
-    for i in range(warmup_frames):
-        ret, frame = cap.read()
-    print(f"frame shape: {frame.shape[1]}x{frame.shape[0]}, expected shape: {cfg.wreq}x{cfg.hreq}.")
+    # display frame object
+    df = DisplayFrame(cap, cfg, (w_display, h_display))
 
-    # fps measurement
-    t = time.perf_counter()
-    t1 = t
-    T = 5 # seconds
-    n = 0 # frame count
-    dts = [] # loop times
+    # rate monitor
+    T = 3
+    rate_monitor = RateMonitor(T)
+    rate_monitor.reset(time.perf_counter())
+
     while True:
+        # read key
+        k = cv2.waitKey(1) & 0xFF
+        if k == ord('q'):
+            break
         # read frame
         ret, frame = cap.read()
-        n = n+1
-        # rotate frame
-        frame = rotate_frame(frame, cfg)
-        # flip frame
-        frame = flip_frame(frame, cfg)
-        # downsample frame
-        frame_display = cv2.resize(frame, (w_display, h_display))
+        if not ret:
+            raise RuntimeError("could not read frame.")
+        # get display frame
+        display_frame = get_display_frame(frame, df)
         # display frame
-        cv2.imshow("frame_display", frame_display)
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            break
+        cv2.imshow("frame_display", display_frame)
 
-        # fps measurement and logging
-        dt = time.perf_counter()-t1
-        t1 = time.perf_counter()
-        dts.append(dt)
-        if (t1-t) > T:
-            fps = n / (t1-t)
-            print(f"fps {fps}Hz, max dt {max(dts)}, mean dt {np.mean(dts)}.")
-            t = t1
-            n = 0
-            dts = []
-    
+        # rate monitor
+        rate_monitor.increment(time.perf_counter())
+
     cap.release()
     cv2.destroyAllWindows()
     

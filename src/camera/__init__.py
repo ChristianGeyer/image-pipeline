@@ -1,17 +1,15 @@
 from .camera import (
     CameraConfig,
-    open_camera_by_index,
     open_configured_camera,
-    test_resolution_modes,
-    test_resolution_mode_fps,
+    find_resolution_modes,
+    measure_fps,
     rotate_frame,
     flip_frame,
 )
 
 __all__ = ["CameraConfig", 
-           "open_camera_by_index",
            "open_configured_camera",
-           "test_resolution_modes",
-           "test_resolution_mode_fps",
+           "find_resolution_modes",
+           "measure_fps",
            "rotate_frame",
            "flip_frame"]
