@@ -78,3 +78,69 @@ Datasets/
 
 # share file
 share.*
+
+
+#################################
+# NEW SECTION FOR BACKUP MAC TESE
+#################################
+
+# ------------------------------
+# LaTeX build artifacts
+# ------------------------------
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.idx
+*.ilg
+*.ind
+*.lof
+*.log
+*.lot
+*.out
+*.run.xml
+*.synctex.gz
+*.toc
+*.fdb_latexmk
+*.fls
+*.nav
+*.snm
+*.vrb
+
+# ------------------------------
+# Temporary compilation files
+# ------------------------------
+*.acn
+*.acr
+*.alg
+*.glg
+*.glo
+*.gls
+*.ist
+
+# ------------------------------
+# Latexmk
+# ------------------------------
+latexmkrc
+*.latexmk
+
+# ------------------------------
+# Editor / system files
+# ------------------------------
+.DS_Store
+*.swp
+*.swo
+*~
+
+# ------------------------------
+# Optional: ignore generated PDFs
+# (only if you don't want PDFs in git)
+# ------------------------------
+# *.pdf
+
+
+# ------------------------------
+# Generated project documents
+# ------------------------------
+STRUCTURE.md
+API_DOCSTRINGS.md

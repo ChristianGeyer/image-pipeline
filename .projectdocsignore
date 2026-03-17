@@ -1,0 +1,68 @@
+# =========================
+# Project docs ignore rules
+# =========================
+
+# Generated documentation outputs
+STRUCTURE.md
+API_DOCSTRINGS.md
+
+# Git internals
+.git/
+.git
+
+# Python caches / environments
+__pycache__/
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.python-version
+.venv/
+venv/
+env/
+.tox/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Editor / OS noise
+.DS_Store
+.idea/
+.vscode/
+
+# Build / packaging artifacts
+build/
+dist/
+.eggs/
+*.egg-info/
+*.egg-info
+
+# Node / frontend dependencies
+node_modules/
+
+# Common logs / generated outputs
+*.log
+
+# LaTeX auxiliary/build artifacts
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.lot
+*.out
+*.run.xml
+*.synctex.gz
+*.toc
+
+# Backup/archive folders
+backup-*/
+backup-*
+
+# Optional: binary or large generated artifacts
+*.zip
+*.tar
+*.gz
+*.pdf
