@@ -1,122 +1,180 @@
 import cv2
 import numpy as np
-import platform
-import time
 
-class CameraConfig:
-    def __init__(self,
-                 wmax,
-                 hmax,
-                 wreq,
-                 hreq,
-                 rotation_deg,
-                 x_is_mirrored,
-                 x_should_be_mirrored,
-                 y_is_mirrored,
-                 y_should_be_mirrored,
-                 fps,
-                 index):
-        self.wmax = wmax
-        self.hmax = hmax
-        self.wreq = wreq
-        self.hreq = hreq
-        self.rotation_deg = rotation_deg
-        self.x_flip = x_is_mirrored ^ x_should_be_mirrored
-        self.y_flip = y_is_mirrored ^ y_should_be_mirrored
-        self.fps = fps
-        self.index = 0
-        if index is not None:
-            self.index = index
+def open_camera(camera_index: int, driver: str | None = None) -> cv2.VideoCapture:
+    """
+    Open a camera using OpenCV.
 
-# cfg : CameraConfig object
-def open_camera_by_index(cfg):
-    sys = platform.system()
-    if sys == "Darwin":
-        cap = cv2.VideoCapture(cfg.index, cv2.CAP_AVFOUNDATION)
-    elif sys == "Windows":
-        cap = cv2.VideoCapture(cfg.index, cv2.CAP_DSHOW)
+    If no driver is specified, OpenCV selects the default backend for the OS.
+    If a driver is provided, it is mapped to the corresponding OpenCV backend.
+
+    Args:
+        camera_index: Index of the camera device.
+        driver: Optional backend/driver name (e.g., 'dshow', 'avfoundation', 'v4l2').
+
+    Returns:
+        Opened cv2.VideoCapture object.
+
+    Raises:
+        RuntimeError: If the camera cannot be opened.
+    """
+    driver_map = {
+        "dshow": cv2.CAP_DSHOW,
+        "avfoundation": cv2.CAP_AVFOUNDATION,
+        "v4l2": cv2.CAP_V4L2,
+        "msmf": cv2.CAP_MSMF,
+    }
+
+    if driver is None:
+        cap = cv2.VideoCapture(camera_index)
     else:
-        cap = cv2.VideoCapture(cfg.index, 0)
-    # test if capture object opened
+        backend = driver_map.get(driver.lower())
+        if backend is None:
+            raise ValueError(f"Unknown driver: {driver}")
+        cap = cv2.VideoCapture(camera_index, backend)
+
     if not cap.isOpened():
-        raise RuntimeError(f"{sys} could not open usb camera at index {cfg.index}.")
+        raise RuntimeError(f"Could not open camera (index={camera_index}, driver={driver})")
+
     return cap
 
 
-# test resolution modes
-# test from (wmax, hmax)/f1 to (wmax,hmax)/f2
-def test_resolution_modes(cfg, f1, f2, N):
-    # open VideoCapture Object
-    cap = open_camera_by_index(cfg)
+def set_resolution(
+    cap: cv2.VideoCapture,
+    width: int | None,
+    height: int | None,
+) -> tuple[int, int]:
+    """
+    Set the camera capture resolution if specified.
 
-    distinct = []
-    complete = []
-    for i in range(N+1):
-        print(f"{i}/{N}")
-        f = f1 + 1.0*i*(f2-f1)/N
-        # request resolution
-        wreq = int(cfg.wmax/f)
-        hreq = int(cfg.hmax/f)
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, wreq)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, hreq)
-        # capture frame
-        ret, frame = cap.read()
-        h, w = frame.shape[:2]
-        complete.append((wreq, hreq, w, h))
-        if (w, h) not in set(distinct):
-            distinct.append((w, h))
-    cap.release()
-    return distinct, complete
+    Args:
+        cap: OpenCV VideoCapture object.
+        width: Desired frame width in pixels.
+        height: Desired frame height in pixels.
 
-# test fps of a resolution mode
-def test_resolution_mode_fps(cap, mode, T=10, warmup_frames=5):
-    wreq, hreq = mode
-    wreq = int(wreq)
-    hreq = int(hreq)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, wreq)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, hreq)
-    print(f"testing mode {wreq}x{hreq}.")
-    # warmup frames
-    for i in range(warmup_frames):
-        ret, frame = cap.read()
-    # check frame shape
-    print(f"frame shape: {frame.shape[1]}x{frame.shape[0]}.")
-    # frame count
-    n = 0
-    # initial time
-    t = time.perf_counter()
-    # read times
-    dts = []
-    tprint = t
-    while time.perf_counter() - t < T:
-        t1 = time.perf_counter()
-        if t1-tprint > 1:
-            print(f"{np.round(t1-t, 3)}s/{T}s")
-            tprint = t1
-        ret, frame = cap.read()
-        dt = time.perf_counter()-t1
-        dts.append(dt)
-        n = n+1
-    fps = n / (time.perf_counter()-t)
-    return fps, dts
+    Returns:
+        Tuple (actual_width, actual_height) after applying settings.
+    """
+    if width is not None:
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
 
-def rotate_frame(frame, cfg):
-    rotation_deg = cfg.rotation_deg
-    if rotation_deg == 90:
-        frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
-    elif rotation_deg == 180:
-        frame = cv2.rotate(frame, cv2.ROTATE_180)
-    elif rotation_deg == 270:
-        frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    if height is not None:
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+
+    actual_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    actual_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+    return actual_width, actual_height
+
+
+def read_frame(cap: cv2.VideoCapture) -> np.ndarray:
+    """
+    Capture a single frame from the camera.
+
+    Args:
+        cap: OpenCV VideoCapture object.
+
+    Returns:
+        Captured frame as a NumPy array.
+
+    Raises:
+        RuntimeError: If a frame cannot be read.
+    """
+    ret, frame = cap.read()
+
+    if not ret or frame is None:
+        raise RuntimeError("Failed to read frame from camera.")
+
     return frame
 
-def flip_frame(frame, cfg):
-    mirror_x = cfg.x_flip
-    mirror_y = cfg.y_flip
-    if mirror_x and (not mirror_y):
-        frame = cv2.flip(frame, 1)
-    elif (not mirror_x) and mirror_y:
-        frame = cv2.flip(frame, 0)
-    elif mirror_x and mirror_y:
-        frame = cv2.flip(frame, -1)
-    return frame
+
+def rotate_frame(frame: np.ndarray, angle: int) -> np.ndarray:
+    """
+    Rotate a frame by a given angle (in degrees).
+
+    Supported angles: 0, 90, 180, 270.
+
+    Args:
+        frame: Input image frame.
+        angle: Rotation angle in degrees.
+
+    Returns:
+        Rotated frame.
+
+    Raises:
+        ValueError: If angle is not supported.
+    """
+    if angle == 0:
+        return frame
+    elif angle == 90:
+        return cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+    elif angle == 180:
+        return cv2.rotate(frame, cv2.ROTATE_180)
+    elif angle == 270:
+        return cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    else:
+        raise ValueError(f"Unsupported rotation angle: {angle}")
+    
+
+def flip_frame(frame: np.ndarray, flip_x: bool, flip_y: bool) -> np.ndarray:
+    """
+    Flip a frame horizontally and/or vertically.
+
+    Args:
+        frame: Input image frame.
+        flip_x: If True, flip horizontally.
+        flip_y: If True, flip vertically.
+
+    Returns:
+        Flipped frame.
+    """
+    if flip_x and flip_y:
+        return cv2.flip(frame, -1)
+    elif flip_x:
+        return cv2.flip(frame, 1)
+    elif flip_y:
+        return cv2.flip(frame, 0)
+    else:
+        return frame
+
+
+def resize_frame(
+    frame: np.ndarray,
+    width: int | None,
+    height: int | None,
+) -> np.ndarray:
+    """
+    Resize a frame while preserving aspect ratio.
+
+    If both width and height are given, they are treated as a bounding box and
+    the frame is scaled to fit inside it without cropping or distortion.
+
+    Args:
+        frame: Input image frame.
+        width: Maximum target width in pixels.
+        height: Maximum target height in pixels.
+
+    Returns:
+        Resized frame.
+    """
+    if width is None and height is None:
+        return frame
+
+    original_h, original_w = frame.shape[:2]
+
+    if width is not None and height is not None:
+        scale = min(width / original_w, height / original_h)
+        new_w = max(1, int(round(original_w * scale)))
+        new_h = max(1, int(round(original_h * scale)))
+
+    elif width is not None:
+        scale = width / original_w
+        new_w = width
+        new_h = max(1, int(round(original_h * scale)))
+
+    else:
+        scale = height / original_h
+        new_w = max(1, int(round(original_w * scale)))
+        new_h = height
+
+    return cv2.resize(frame, (new_w, new_h))
